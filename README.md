@@ -7,9 +7,10 @@ Small personal project for a chatbot specialized in sports.
 
 ## Last Realease
 - Setup the project
+- DistilGpt2 running
 
 ## Next Realease
-- DistilGpt2 running
 - Chatbot IHM with StreamLit
-- DistilGpt2 Fine tuning on open dataset
-- DistilGpt2 Fine tuning on a custom dataset (SportGPT)
+- Model selection
+- Model Fine tuning on open dataset
+- Model Fine tuning on a custom dataset (SportGPT)
