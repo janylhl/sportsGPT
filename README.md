@@ -1,6 +1,7 @@
 # SportsGPT
 Small personal project for a chatbot specialized in sports. 
 
+The purpose of this project is to aquire more knowledge about LLM utilisation throught the Hugging Face Transformers API.
 ## Installation
 
 ## Presentation
