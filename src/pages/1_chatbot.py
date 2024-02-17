@@ -4,7 +4,7 @@ import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from llm.distilgpt2 import get_response
 
-st.title("💬 SportGPT")
+st.title("💬 FitBot")
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]

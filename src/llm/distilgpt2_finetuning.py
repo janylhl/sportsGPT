@@ -1,49 +1,72 @@
 from datasets import load_dataset
-from transformers import AutoTokenizer, AutoModelForCausalLM, DataCollatorWithPadding, TrainingArguments, Trainer
-import numpy as np
+from transformers import AutoTokenizer, TFAutoModelForCausalLM, DataCollatorWithPadding
 import tensorflow as tf
+import numpy as np
 
-# Chargement de l'ensemble de données
-raw_datasets = load_dataset("esoria3/french_simplified")
-tokenizer = AutoTokenizer.from_pretrained('distilgpt2')
+def check_gpu_availability():
+    print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-# Définir le token de padding sur le token eos si ce n'est pas déjà fait
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token
+def load_and_prepare_data(dataset_name, tokenizer_name, subset_size=100, test_size=0.2, max_length=512):
+    raw_datasets = load_dataset(dataset_name)
+    train_test_split = raw_datasets["train"].select(range(subset_size)).train_test_split(test_size=test_size)
+    
+    raw_datasets["train"] = train_test_split["train"]
+    raw_datasets["validation"] = train_test_split["test"]
+    
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    
+    def tokenize_function(examples):
+        return tokenizer(examples["text"], padding="max_length", truncation=True, max_length=max_length)
+    
+    tokenized_datasets = raw_datasets.map(tokenize_function, batched=True)
+    return tokenized_datasets, tokenizer
 
-# Fonction de tokenisation ajustée
-def tokenize_function(examples):
-    return tokenizer(examples["text"], padding="max_length", truncation=True, max_length=512)
-
-# Tokenisation de l'ensemble de données
-tokenized_datasets = raw_datasets.map(tokenize_function, batched=True)
-
-# Préparation du collateur de données
-data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
-
-# Conversion en dataset TensorFlow
-def to_tf_dataset(split):
+def to_tf_dataset(tokenized_datasets, tokenizer, split, batch_size=8):
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
     return tokenized_datasets[split].to_tf_dataset(
         columns=["input_ids", "attention_mask"],
-        label_cols=["input_ids"],  # Les labels sont les input_ids pour un modèle de langage
+        label_cols=["input_ids"],
         shuffle=True if split == "train" else False,
         collate_fn=data_collator,
-        batch_size=8,
+        batch_size=batch_size,
     )
 
-tf_train_dataset = to_tf_dataset("train")
-tf_validation_dataset = to_tf_dataset("validation")
+def train_model(model_name, train_dataset, val_dataset, learning_rate=5e-5, epochs=5):
+    model = TFAutoModelForCausalLM.from_pretrained(model_name)
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                  metrics=["accuracy"])
+    model.fit(train_dataset, validation_data=val_dataset, epochs=epochs)
+    return model
 
-# Chargement et compilation du modèle
-model = AutoModelForCausalLM.from_pretrained('distilgpt2')
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=5e-5),
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-              metrics=["accuracy"])
+def predict_and_evaluate(model, val_dataset):
+    preds = model.predict(val_dataset)["logits"]
+    class_preds = np.argmax(preds, axis=-1)
+    print(preds.shape, class_preds.shape)
 
-# Entraînement du modèle
-model.fit(tf_train_dataset, validation_data=tf_validation_dataset, epochs=3)
+def main():
+    check_gpu_availability()
+    
+    dataset_name = "La-matrice/french_sentences_19M"
+    tokenizer_name = 'distilgpt2'
+    model_name = 'distilgpt2'
+    subset_size = 100
+    test_size = 0.2
+    max_length = 512
+    batch_size = 8
+    learning_rate = 5e-5
+    epochs = 2
+    
+    tokenized_datasets, tokenizer = load_and_prepare_data(dataset_name, tokenizer_name, subset_size, test_size, max_length)
+    train_dataset = to_tf_dataset(tokenized_datasets, tokenizer, "train", batch_size)
+    val_dataset = to_tf_dataset(tokenized_datasets, tokenizer, "validation", batch_size)
+    
+    model = train_model(model_name, train_dataset, val_dataset, learning_rate, epochs)
+    predict_and_evaluate(model, val_dataset)
+    
+    print("### Fin du script de Fine-tuning ! ###")
 
-# Prédiction et évaluation
-preds = model.predict(tf_validation_dataset)["logits"]
-class_preds = np.argmax(preds, axis=-1)  # Ajustez selon la structure de votre ensemble de données
-print(preds.shape, class_preds.shape)
+if __name__ == "__main__":
+    main()
