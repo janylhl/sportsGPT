@@ -6,13 +6,12 @@ The purpose of this project is to aquire more knowledge about LLM utilisation th
 
 ## Presentation
 
-## Last Realease
-- Setup the project
-- DistilGpt2 running
-- Chatbot IHM with StreamLit v.1
+## Last Updates
+- [2024.02.17] Chatbot IHM with StreamLit v.1
+- [2024.02.16] DistilGpt2 running
+- [2024.02.16] Setup the project
 
-## Next Realease
-- Chatbot IHM with StreamLit v.0
+## Next Updates
 - Model selection
 - Model Fine tuning on open dataset
 - Model Fine tuning on a custom dataset (SportGPT)
