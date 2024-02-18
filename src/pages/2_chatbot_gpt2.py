@@ -2,10 +2,10 @@ import streamlit as st
 from pathlib import Path
 import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from llm.distilgpt2 import get_response
+from llm.gpt2_conversational import get_response
 
 st.title("💬 FitBot")
-
+st.write("This version is not working very well for the moment, prefer the dialoGPT version.")
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
 
@@ -25,7 +25,7 @@ if prompt := st.chat_input("What is up?"):
     # Display assistant response in chat message container
 
     print(st.session_state.messages)
-    response = get_response(st.session_state.messages)
+    response, history = get_response(st.session_state.messages)
     #msg = response.choices[0].message.content
     st.session_state.messages.append({"role": "assistant", "content": response})
     st.chat_message("assistant").write(response)
