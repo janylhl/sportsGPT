@@ -22,7 +22,33 @@ Join the Fitness Revolution: Embrace the power of AI and take your training to t
 Let's Lift Together! 🚀
 
 ## Installation :computer:
-Comming soon
+Follow these steps to set up and run FitBot on your local machine.
+
+### Prerequisites
+
+Ensure you have `git` and `python` (version 3.7 or later) installed on your system.
+
+### Installation Steps
+
+1. **Clone the Repository**
+
+Open a terminal and clone the repository with:
+git clone [https://github.com/janylhl/sportsGPT.git](https://github.com/janylhl/sportsGPT.git)
+cd sportGPT
+
+2. **Create a Virtual Environment** (optional but recommended)
+
+
+3. **Install Dependencies**
+
+Install all required dependencies by running:
+pip install -r requirements.txt
+
+### Launching the Streamlit App
+
+Once installation is complete, you can launch the Streamlit app by executing:
+streamlit run src/Home.py
+
 
 ## Scientific and Technical Journey of the project :book:
 My approach to project construction is based on a gradual increase in the complexity of the solution and the tasks performed. First of all, a simple and classic data science project framework was set up for the repo. As far as the GUI is concerned, I decided to make a small streamlit application, since developing a sophisticated interface is absolutely not the primary objective of this project. A first text generation LLM (DistilGPT2) was first used to run the bot. Then I looked at the fine-tuning of such an LLM, and to make it interesting, I chose to train it on a French text generation dataset in order to make it change language. Once this introduction was done, I had to go further on the conversational capabilities of the LLM used.

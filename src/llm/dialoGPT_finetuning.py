@@ -23,7 +23,7 @@ raw_datasets = load_dataset("OpenLLM-France/Claire-Dialogue-French-0.1")
 
 
 
-tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
+tokenizer = AutoTokenizer.from_pretrained('.models/dialoGPT-fr-tokenizer')
 tokenizer.pad_token = tokenizer.eos_token
 # TODO : Cette façon de faire fait exploser ma mémoire il faut la revoir et uriliser au maximum les outils HF
 def batch_tokenize_pairs(inputs, targets, batch_size=10):
@@ -66,6 +66,20 @@ def create_tf_dataset(tokenized_inputs, tokenized_targets):
     
     return dataset
 
+def data_generator(inputs, targets, batch_size):
+    for i in range(0, len(inputs), batch_size):
+        batch_inputs = inputs[i:i+batch_size]
+        batch_targets = targets[i:i+batch_size]
+        tokenized_inputs = tokenizer(batch_inputs, padding="max_length", truncation=True, max_length=512, return_tensors="tf")
+        tokenized_targets = tokenizer(batch_targets, padding="max_length", truncation=True, max_length=512, return_tensors="tf")
+        
+        print(tokenized_inputs["input_ids"].shape, tokenized_inputs["attention_mask"].shape, tokenized_targets["input_ids"].shape)  # Ajout pour le débogage
+        
+        yield {
+            "input_ids": tokenized_inputs["input_ids"],
+            "attention_mask": tokenized_inputs["attention_mask"],
+        }, tokenized_targets["input_ids"]
+
 
 # Prétraitement des données
 print('Preprocessing')
@@ -74,15 +88,30 @@ val_inputs, val_targets = preprocess_dataset(raw_datasets["test"])
 
 # Tokenisation des données
 print('Tokenization')
-print('Tokenization train')
-tokenized_train_inputs, tokenized_train_targets = batch_tokenize_pairs(train_inputs, train_targets)
-print('Tokenization val')
-tokenized_val_inputs, tokenized_val_targets = batch_tokenize_pairs(val_inputs, val_targets)
+# Création du dataset TensorFlow à partir du générateur
+train_dataset = tf.data.Dataset.from_generator(
+    lambda: data_generator(train_inputs, train_targets, 4),
+    output_signature=(
+        {
+            "input_ids": tf.TensorSpec(shape=(None, 512), dtype=tf.int32),
+            "attention_mask": tf.TensorSpec(shape=(None, 512), dtype=tf.int32),
+        },
+        tf.TensorSpec(shape=(None, 512), dtype=tf.int32),
+    )
+).prefetch(tf.data.AUTOTUNE)
 
-# Création des datasets TensorFlow
-print('Dataset creation')
-train_dataset = create_tf_dataset(tokenized_train_inputs['input_ids'], tokenized_train_targets['input_ids'])
-val_dataset = create_tf_dataset(tokenized_val_inputs['input_ids'], tokenized_val_targets['input_ids'])
+val_dataset = tf.data.Dataset.from_generator(
+    lambda: data_generator(val_inputs, val_targets, 4),
+    output_signature=(
+        {
+            "input_ids": tf.TensorSpec(shape=(None, 512), dtype=tf.int32),
+            "attention_mask": tf.TensorSpec(shape=(None, 512), dtype=tf.int32),
+        },
+        tf.TensorSpec(shape=(None, 512), dtype=tf.int32),
+    )
+).prefetch(tf.data.AUTOTUNE)
+
+
 
 
 from transformers import TFAutoModelForCausalLM
