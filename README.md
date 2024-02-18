@@ -28,6 +28,7 @@ Comming soon
 My approach to project construction is based on a gradual increase in the complexity of the solution and the tasks performed. First of all, a simple and classic data science project framework was set up for the repo. As far as the GUI is concerned, I decided to make a small streamlit application, since developing a sophisticated interface is absolutely not the primary objective of this project. A first text generation LLM (DistilGPT2) was first used to run the bot. Then I looked at the fine-tuning of such an LLM, and to make it interesting, I chose to train it on a French text generation dataset in order to make it change language. Once this introduction was done, I had to go further on the conversational capabilities of the LLM used.
 
 So the second step was to focus on the conversational aspect. To do this, I had two main options: I could use a model specialized in conversation directly, and work on making it more specialized, or I could stick with a text generation model and build the right environment for its proper use in a chatbot. I'm currently exploring these two approaches with dialoGPT for the conversational network and GPT2 for the text generation LLM, which gives me greater freedom.
+I will probably focus my time finetuning a DialoGPT on a french corpus first, by building a specific tokenizer if it's needed and then performe the training.
 
 ## Last Updates :tada:
 - [2024.02.18] DialoGPT is now used fot the chatbot

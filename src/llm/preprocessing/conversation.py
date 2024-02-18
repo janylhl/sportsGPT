@@ -2,17 +2,19 @@ import re
 
 def preprocess_conversation(exchange):
     splits = re.split(r"(\[speaker\d{3}:\])", exchange)
-    dialogue = [segment for segment in splits if segment.strip()]  # Filtrer les segments vides
+    dialogue = [segment.strip() for segment in splits if segment.strip()]  # Nettoyage des segments
     
     inputs, targets = [], []
-    for i in range(len(dialogue)-2):
-        if "[speaker001:]" in dialogue[i+1]:
-            input_text = dialogue[i] + dialogue[i+1]
-            target_text = dialogue[i+1] + dialogue[i+2]
-            inputs.append(input_text.strip())
-            targets.append(target_text.strip())
+    # Boucle ajustée pour mieux capturer le contexte
+    for i in range(1, len(dialogue)-1, 2):
+        context = " ".join(dialogue[max(0, i-3):i+1])  # Inclure plus de contexte si possible
+        input_text = context
+        target_text = dialogue[i+1]
+        inputs.append(input_text)
+        targets.append(target_text)
     
     return inputs, targets
+
 
 def preprocess_dataset(dataset):
     processed_inputs, processed_targets = [], []
