@@ -5,7 +5,7 @@ from transformers import AutoTokenizer
 raw_datasets = load_dataset("La-matrice/french_sentences_19M")
 
 
-
+# Building a training corpus
 def get_training_corpus():
     return (
         raw_datasets["train"][i : i + 1000]

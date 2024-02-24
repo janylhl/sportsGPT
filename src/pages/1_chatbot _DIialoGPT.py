@@ -1,8 +1,13 @@
 import streamlit as st
 from pathlib import Path
 import sys
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-from llm.dialoGPT import get_response
+sys.path.append(str(Path(__file__).resolve().parent))
+from llm.response import get_response_chatbot
+from transformers import pipeline
+
+# Initialisation du modèle de chatbot avec DialoGPT
+chatbot = pipeline('conversational', model='microsoft/DialoGPT-medium')
+
 
 st.title("💬 FitBot")
 
@@ -25,7 +30,7 @@ if prompt := st.chat_input("What is up?"):
     # Display assistant response in chat message container
 
     print(st.session_state.messages)
-    response = get_response(st.session_state.messages)
+    response = get_response_chatbot(st.session_state.messages, chatbot)
     #msg = response.choices[0].message.content
     st.session_state.messages.append({"role": "assistant", "content": response})
     st.chat_message("assistant").write(response)

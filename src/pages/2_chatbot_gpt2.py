@@ -1,11 +1,17 @@
 import streamlit as st
 from pathlib import Path
 import sys
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-from llm.gpt2_conversational import get_response
+sys.path.append(str(Path(__file__).resolve().parent))
+from llm.response import get_response_gpt
+from transformers import pipeline
+
+# Initialisation du pipeline de génération de texte
+generator = pipeline('text-generation', model='gpt2')  # Remplacez 'gpt2' par 'EleutherAI/gpt-neo-2.7B' ou tout autre modèle si nécessaire
+
+
 
 st.title("💬 FitBot")
-st.write("This version is not working very well for the moment, prefer the dialoGPT version.")
+st.write("This version is broken for the moment, prefer the dialoGPT version.")
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
 
@@ -25,7 +31,7 @@ if prompt := st.chat_input("What is up?"):
     # Display assistant response in chat message container
 
     print(st.session_state.messages)
-    response, history = get_response(st.session_state.messages)
+    response, history = get_response_gpt(st.session_state.messages, generator)
     #msg = response.choices[0].message.content
     st.session_state.messages.append({"role": "assistant", "content": response})
     st.chat_message("assistant").write(response)
